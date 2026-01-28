@@ -37,6 +37,10 @@ export function RiskControlEditor({
       minRiskRewardDesc: { zh: '开仓要求的最低盈亏比', en: 'Minimum profit ratio for opening' },
       maxMarginUsage: { zh: '最大保证金使用率（代码强制）', en: 'Max Margin Usage (CODE ENFORCED)' },
       maxMarginUsageDesc: { zh: '保证金使用率上限，由代码强制执行', en: 'Maximum margin utilization, enforced by code' },
+      limitOrderSlippage: { zh: '限价滑点比例', en: 'Limit Order Slippage' },
+      limitOrderSlippageDesc: { zh: '自动限价单的默认滑点比例（0.001 = 0.1%）', en: 'Default slippage pct for auto limit orders (0.001 = 0.1%)' },
+      limitOrderTimeout: { zh: '挂单超时取消', en: 'Limit Order Timeout' },
+      limitOrderTimeoutDesc: { zh: '挂单未成交超过指定分钟数将自动取消（1-60分钟）', en: 'Cancel limit orders not filled within N minutes (1-60 mins)' },
       entryRequirements: { zh: '开仓要求', en: 'Entry Requirements' },
       minPositionSize: { zh: '最小开仓金额', en: 'Min Position Size' },
       minPositionSizeDesc: { zh: 'USDT 最小名义价值', en: 'Minimum notional value in USDT' },
@@ -308,6 +312,71 @@ export function RiskControlEditor({
               />
               <span className="w-12 text-center font-mono" style={{ color: '#0ECB81' }}>
                 {Math.round((config.max_margin_usage ?? 0.9) * 100)}%
+              </span>
+            </div>
+          </div>
+
+          <div
+            className="p-4 rounded-lg"
+            style={{ background: '#0B0E11', border: '1px solid #2B3139' }}
+          >
+            <label className="block text-sm mb-1" style={{ color: '#EAECEF' }}>
+              {t('limitOrderSlippage')}
+            </label>
+            <p className="text-xs mb-2" style={{ color: '#848E9C' }}>
+              {t('limitOrderSlippageDesc')}
+            </p>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                value={config.limit_order_slippage_pct ?? 0.001}
+                onChange={(e) =>
+                  updateField(
+                    'limit_order_slippage_pct',
+                    parseFloat(e.target.value) || 0.001
+                  )
+                }
+                disabled={disabled}
+                min={0}
+                max={0.05}
+                step={0.0001}
+                className="w-28 px-3 py-2 rounded"
+                style={{
+                  background: '#1E2329',
+                  border: '1px solid #2B3139',
+                  color: '#EAECEF',
+                }}
+              />
+              <span className="text-xs font-mono" style={{ color: '#F0B90B' }}>
+                {((config.limit_order_slippage_pct ?? 0.001) * 100).toFixed(2)}%
+              </span>
+            </div>
+          </div>
+
+          <div
+            className="p-4 rounded-lg"
+            style={{ background: '#0B0E11', border: '1px solid #2B3139' }}
+          >
+            <label className="block text-sm mb-1" style={{ color: '#EAECEF' }}>
+              {t('limitOrderTimeout')}
+            </label>
+            <p className="text-xs mb-2" style={{ color: '#848E9C' }}>
+              {t('limitOrderTimeoutDesc')}
+            </p>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                value={config.limit_order_timeout_minutes ?? 15}
+                onChange={(e) =>
+                  updateField('limit_order_timeout_minutes', parseInt(e.target.value) || 15)
+                }
+                disabled={disabled}
+                min={1}
+                max={60}
+                className="flex-1 accent-yellow-500"
+              />
+              <span className="w-12 text-center font-mono" style={{ color: '#F0B90B' }}>
+                {config.limit_order_timeout_minutes ?? 15}m
               </span>
             </div>
           </div>

@@ -138,6 +138,7 @@ type Decision struct {
 	PositionSizeUSD float64 `json:"position_size_usd,omitempty"`
 	StopLoss        float64 `json:"stop_loss,omitempty"`
 	TakeProfit      float64 `json:"take_profit,omitempty"`
+	OrderType       string  `json:"order_type,omitempty"` // "limit" (default) or "market"
 
 	// Grid trading parameters
 	Price      float64 `json:"price,omitempty"`       // Limit order price (for grid)
@@ -431,7 +432,7 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 		return e.filterExcludedCoins(candidates), nil
 
 	case "ai500":
-		// 检查 use_ai500 标志，如果为 false 则回退到静态币种
+		// 检�?use_ai500 标志，如果为 false 则回退到静态币�?
 		if !coinSource.UseAI500 {
 			logger.Infof("⚠️  source_type is 'ai500' but use_ai500 is false, falling back to static coins")
 			for _, symbol := range coinSource.StaticCoins {
@@ -447,11 +448,11 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 		if err != nil {
 			return nil, err
 		}
-		// 空列表是正常情况，直接返回
+		// 空列表是正常情况，直接返�?
 		return e.filterExcludedCoins(coins), nil
 
 	case "oi_top":
-		// 检查 use_oi_top 标志，如果为 false 则回退到静态币种
+		// 检�?use_oi_top 标志，如果为 false 则回退到静态币�?
 		if !coinSource.UseOITop {
 			logger.Infof("⚠️  source_type is 'oi_top' but use_oi_top is false, falling back to static coins")
 			for _, symbol := range coinSource.StaticCoins {
@@ -467,7 +468,7 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 		if err != nil {
 			return nil, err
 		}
-		// 空列表是正常情况，直接返回
+		// 空列表是正常情况，直接返�?
 		return e.filterExcludedCoins(coins), nil
 
 	case "oi_low":
@@ -487,7 +488,7 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 		if err != nil {
 			return nil, err
 		}
-		// 空列表是正常情况，直接返回
+		// 空列表是正常情况，直接返�?
 		return e.filterExcludedCoins(coins), nil
 
 	case "mixed":
@@ -846,7 +847,7 @@ func (e *StrategyEngine) FetchOIRankingData() *nofxos.OIRankingData {
 		return nil
 	}
 
-	logger.Infof("✓ OI ranking data ready: %d top, %d low positions",
+	logger.Infof("�?OI ranking data ready: %d top, %d low positions",
 		len(data.TopPositions), len(data.LowPositions))
 
 	return data
@@ -877,7 +878,7 @@ func (e *StrategyEngine) FetchNetFlowRankingData() *nofxos.NetFlowRankingData {
 		return nil
 	}
 
-	logger.Infof("✓ NetFlow ranking data ready: inst_in=%d, inst_out=%d, retail_in=%d, retail_out=%d",
+	logger.Infof("�?NetFlow ranking data ready: inst_in=%d, inst_out=%d, retail_in=%d, retail_out=%d",
 		len(data.InstitutionFutureTop), len(data.InstitutionFutureLow),
 		len(data.PersonalFutureTop), len(data.PersonalFutureLow))
 
@@ -909,7 +910,7 @@ func (e *StrategyEngine) FetchPriceRankingData() *nofxos.PriceRankingData {
 		return nil
 	}
 
-	logger.Infof("✓ Price ranking data ready for %d durations", len(data.Durations))
+	logger.Infof("�?Price ranking data ready for %d durations", len(data.Durations))
 
 	return data
 }
@@ -943,7 +944,7 @@ func (e *StrategyEngine) BuildSystemPrompt(accountEquity float64, variant string
 	// 2. Trading mode variant
 	switch strings.ToLower(strings.TrimSpace(variant)) {
 	case "aggressive":
-		sb.WriteString("## Mode: Aggressive\n- Prioritize capturing trend breakouts, can build positions in batches when confidence ≥ 70\n- Allow higher positions, but must strictly set stop-loss and explain risk-reward ratio\n\n")
+		sb.WriteString("## Mode: Aggressive\n- Prioritize capturing trend breakouts, can build positions in batches when confidence �?70\n- Allow higher positions, but must strictly set stop-loss and explain risk-reward ratio\n\n")
 	case "conservative":
 		sb.WriteString("## Mode: Conservative\n- Only open positions when multiple signals resonate\n- Prioritize cash preservation, must pause for multiple periods after consecutive losses\n\n")
 	case "scalping":
@@ -967,19 +968,19 @@ func (e *StrategyEngine) BuildSystemPrompt(accountEquity float64, variant string
 		accountEquity*altcoinPosValueRatio, accountEquity, altcoinPosValueRatio))
 	sb.WriteString(fmt.Sprintf("- Position Value Limit (BTC/ETH): max %.0f USDT (= equity %.0f × %.1fx)\n",
 		accountEquity*btcEthPosValueRatio, accountEquity, btcEthPosValueRatio))
-	sb.WriteString(fmt.Sprintf("- Max Margin Usage: ≤%.0f%%\n", riskControl.MaxMarginUsage*100))
-	sb.WriteString(fmt.Sprintf("- Min Position Size: ≥%.0f USDT\n\n", riskControl.MinPositionSize))
+	sb.WriteString(fmt.Sprintf("- Max Margin Usage: �?.0f%%\n", riskControl.MaxMarginUsage*100))
+	sb.WriteString(fmt.Sprintf("- Min Position Size: �?.0f USDT\n\n", riskControl.MinPositionSize))
 
 	sb.WriteString("## AI GUIDED (Recommended, you should follow):\n")
 	sb.WriteString(fmt.Sprintf("- Trading Leverage: Altcoins max %dx | BTC/ETH max %dx\n",
 		riskControl.AltcoinMaxLeverage, riskControl.BTCETHMaxLeverage))
-	sb.WriteString(fmt.Sprintf("- Risk-Reward Ratio: ≥1:%.1f (take_profit / stop_loss)\n", riskControl.MinRiskRewardRatio))
-	sb.WriteString(fmt.Sprintf("- Min Confidence: ≥%d to open position\n\n", riskControl.MinConfidence))
+	sb.WriteString(fmt.Sprintf("- Risk-Reward Ratio: �?:%.1f (take_profit / stop_loss)\n", riskControl.MinRiskRewardRatio))
+	sb.WriteString(fmt.Sprintf("- Min Confidence: �?d to open position\n\n", riskControl.MinConfidence))
 
 	// Position sizing guidance
 	sb.WriteString("## Position Sizing Guidance\n")
 	sb.WriteString("Calculate `position_size_usd` based on your confidence and the Position Value Limits above:\n")
-	sb.WriteString("- High confidence (≥85): Use 80-100%% of max position value limit\n")
+	sb.WriteString("- High confidence (�?5): Use 80-100%% of max position value limit\n")
 	sb.WriteString("- Medium confidence (70-84): Use 50-80%% of max position value limit\n")
 	sb.WriteString("- Low confidence (60-69): Use 30-50%% of max position value limit\n")
 	sb.WriteString(fmt.Sprintf("- Example: With equity %.0f and BTC/ETH ratio %.1fx, max is %.0f USDT\n",
@@ -992,10 +993,10 @@ func (e *StrategyEngine) BuildSystemPrompt(accountEquity float64, variant string
 		sb.WriteString("\n\n")
 	} else {
 		sb.WriteString("# ⏱️ Trading Frequency Awareness\n\n")
-		sb.WriteString("- Excellent traders: 2-4 trades/day ≈ 0.1-0.2 trades/hour\n")
+		sb.WriteString("- Excellent traders: 2-4 trades/day �?0.1-0.2 trades/hour\n")
 		sb.WriteString("- >2 trades/hour = Overtrading\n")
-		sb.WriteString("- Single position hold time ≥ 30-60 minutes\n")
-		sb.WriteString("If you find yourself trading every period → standards too low; if closing positions < 30 minutes → too impatient.\n\n")
+		sb.WriteString("- Single position hold time �?30-60 minutes\n")
+		sb.WriteString("If you find yourself trading every period �?standards too low; if closing positions < 30 minutes �?too impatient.\n\n")
 	}
 
 	// 5. Entry standards (editable)
@@ -1003,12 +1004,12 @@ func (e *StrategyEngine) BuildSystemPrompt(accountEquity float64, variant string
 		sb.WriteString(promptSections.EntryStandards)
 		sb.WriteString("\n\nYou have the following indicator data:\n")
 		e.writeAvailableIndicators(&sb)
-		sb.WriteString(fmt.Sprintf("\n**Confidence ≥ %d** required to open positions.\n\n", riskControl.MinConfidence))
+		sb.WriteString(fmt.Sprintf("\n**Confidence �?%d** required to open positions.\n\n", riskControl.MinConfidence))
 	} else {
 		sb.WriteString("# 🎯 Entry Standards (Strict)\n\n")
 		sb.WriteString("Only open positions when multiple signals resonate. You have:\n")
 		e.writeAvailableIndicators(&sb)
-		sb.WriteString(fmt.Sprintf("\nFeel free to use any effective analysis method, but **confidence ≥ %d** required to open positions; avoid low-quality behaviors such as single indicators, contradictory signals, sideways consolidation, reopening immediately after closing, etc.\n\n", riskControl.MinConfidence))
+		sb.WriteString(fmt.Sprintf("\nFeel free to use any effective analysis method, but **confidence �?%d** required to open positions; avoid low-quality behaviors such as single indicators, contradictory signals, sideways consolidation, reopening immediately after closing, etc.\n\n", riskControl.MinConfidence))
 	}
 
 	// 6. Decision process (editable)
@@ -1017,8 +1018,8 @@ func (e *StrategyEngine) BuildSystemPrompt(accountEquity float64, variant string
 		sb.WriteString("\n\n")
 	} else {
 		sb.WriteString("# 📋 Decision Process\n\n")
-		sb.WriteString("1. Check positions → Should we take profit/stop-loss\n")
-		sb.WriteString("2. Scan candidate coins + multi-timeframe → Are there strong signals\n")
+		sb.WriteString("1. Check positions �?Should we take profit/stop-loss\n")
+		sb.WriteString("2. Scan candidate coins + multi-timeframe �?Are there strong signals\n")
 		sb.WriteString("3. Write chain of thought first, then output structured JSON\n\n")
 	}
 
@@ -1035,14 +1036,16 @@ func (e *StrategyEngine) BuildSystemPrompt(accountEquity float64, variant string
 	sb.WriteString("```json\n[\n")
 	// Use the actual configured position value ratio for BTC/ETH in the example
 	examplePositionSize := accountEquity * btcEthPosValueRatio
-	sb.WriteString(fmt.Sprintf("  {\"symbol\": \"BTCUSDT\", \"action\": \"open_short\", \"leverage\": %d, \"position_size_usd\": %.0f, \"stop_loss\": 97000, \"take_profit\": 91000, \"confidence\": 85, \"risk_usd\": 300},\n",
+	sb.WriteString(fmt.Sprintf("  {\"symbol\": \"BTCUSDT\", \"action\": \"open_short\", \"order_type\": \"limit\", \"price\": 96000, \"leverage\": %d, \"position_size_usd\": %.0f, \"stop_loss\": 97000, \"take_profit\": 91000, \"confidence\": 85, \"risk_usd\": 300},\n",
 		riskControl.BTCETHMaxLeverage, examplePositionSize))
 	sb.WriteString("  {\"symbol\": \"ETHUSDT\", \"action\": \"close_long\"}\n")
 	sb.WriteString("]\n```\n")
 	sb.WriteString("</decision>\n\n")
 	sb.WriteString("## Field Description\n\n")
 	sb.WriteString("- `action`: open_long | open_short | close_long | close_short | hold | wait\n")
-	sb.WriteString(fmt.Sprintf("- `confidence`: 0-100 (opening recommended ≥ %d)\n", riskControl.MinConfidence))
+	sb.WriteString("- `order_type`: limit | market (default: limit)\n")
+	sb.WriteString("- `price`: limit order price (required when `order_type=limit`, optional when market)\n")
+	sb.WriteString(fmt.Sprintf("- `confidence`: 0-100 (opening recommended �?%d)\n", riskControl.MinConfidence))
 	sb.WriteString("- Required when opening: leverage, position_size_usd, stop_loss, take_profit, confidence, risk_usd\n")
 	sb.WriteString("- **IMPORTANT**: All numeric values must be calculated numbers, NOT formulas/expressions (e.g., use `27.76` not `3000 * 0.01`)\n\n")
 
@@ -1161,7 +1164,7 @@ func (e *StrategyEngine) BuildUserPrompt(ctx *Context) string {
 			if order.RealizedPnL < 0 {
 				resultStr = "Loss"
 			}
-			sb.WriteString(fmt.Sprintf("%d. %s %s | Entry %.4f Exit %.4f | %s: %+.2f USDT (%+.2f%%) | %s→%s (%s)\n",
+			sb.WriteString(fmt.Sprintf("%d. %s %s | Entry %.4f Exit %.4f | %s: %+.2f USDT (%+.2f%%) | %s�?s (%s)\n",
 				i+1, order.Symbol, order.Side,
 				order.EntryPrice, order.ExitPrice,
 				resultStr, order.RealizedPnL, order.PnLPct,
@@ -1183,12 +1186,12 @@ func (e *StrategyEngine) BuildUserPrompt(ctx *Context) string {
 
 		if lang == LangChinese {
 			sb.WriteString("## 历史交易统计\n")
-			sb.WriteString(fmt.Sprintf("总交易: %d 笔 | 盈利因子: %.2f | 夏普比率: %.2f | 盈亏比: %.2f\n",
+			sb.WriteString(fmt.Sprintf("总交�? %d �?| 盈利因子: %.2f | 夏普比率: %.2f | 盈亏�? %.2f\n",
 				ctx.TradingStats.TotalTrades,
 				ctx.TradingStats.ProfitFactor,
 				ctx.TradingStats.SharpeRatio,
 				winLossRatio))
-			sb.WriteString(fmt.Sprintf("总盈亏: %+.2f USDT | 平均盈利: +%.2f | 平均亏损: -%.2f | 最大回撤: %.1f%%\n",
+			sb.WriteString(fmt.Sprintf("总盈�? %+.2f USDT | 平均盈利: +%.2f | 平均亏损: -%.2f | 最大回�? %.1f%%\n",
 				ctx.TradingStats.TotalPnL,
 				ctx.TradingStats.AvgWin,
 				ctx.TradingStats.AvgLoss,
@@ -1428,7 +1431,7 @@ func (e *StrategyEngine) formatMarketData(data *market.Data) string {
 		timeframeOrder := []string{"1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w"}
 		for _, tf := range timeframeOrder {
 			if tfData, ok := data.TimeframeData[tf]; ok {
-				sb.WriteString(fmt.Sprintf("=== %s Timeframe (oldest → latest) ===\n\n", strings.ToUpper(tf)))
+				sb.WriteString(fmt.Sprintf("=== %s Timeframe (oldest �?latest) ===\n\n", strings.ToUpper(tf)))
 				e.formatTimeframeSeriesData(&sb, tfData, indicators)
 			}
 		}
@@ -1436,7 +1439,7 @@ func (e *StrategyEngine) formatMarketData(data *market.Data) string {
 		// Compatible with old data format
 		if data.IntradaySeries != nil {
 			klineConfig := indicators.Klines
-			sb.WriteString(fmt.Sprintf("Intraday series (%s intervals, oldest → latest):\n\n", klineConfig.PrimaryTimeframe))
+			sb.WriteString(fmt.Sprintf("Intraday series (%s intervals, oldest �?latest):\n\n", klineConfig.PrimaryTimeframe))
 
 			if len(data.IntradaySeries.MidPrices) > 0 {
 				sb.WriteString(fmt.Sprintf("Mid prices: %s\n\n", formatFloatSlice(data.IntradaySeries.MidPrices)))
@@ -1697,12 +1700,12 @@ func parseFullDecisionResponse(aiResponse string, accountEquity float64, btcEthL
 
 func extractCoTTrace(response string) string {
 	if match := reReasoningTag.FindStringSubmatch(response); match != nil && len(match) > 1 {
-		logger.Infof("✓ Extracted reasoning chain using <reasoning> tag")
+		logger.Infof("�?Extracted reasoning chain using <reasoning> tag")
 		return strings.TrimSpace(match[1])
 	}
 
 	if decisionIdx := strings.Index(response, "<decision>"); decisionIdx > 0 {
-		logger.Infof("✓ Extracted content before <decision> tag as reasoning chain")
+		logger.Infof("�?Extracted content before <decision> tag as reasoning chain")
 		return strings.TrimSpace(response[:decisionIdx])
 	}
 
@@ -1723,7 +1726,7 @@ func extractDecisions(response string) ([]Decision, error) {
 	var jsonPart string
 	if match := reDecisionTag.FindStringSubmatch(s); match != nil && len(match) > 1 {
 		jsonPart = strings.TrimSpace(match[1])
-		logger.Infof("✓ Extracted JSON using <decision> tag")
+		logger.Infof("�?Extracted JSON using <decision> tag")
 	} else {
 		jsonPart = s
 		logger.Infof("⚠️  <decision> tag not found, searching JSON in full text")
@@ -1784,18 +1787,18 @@ func fixMissingQuotes(jsonStr string) string {
 	jsonStr = strings.ReplaceAll(jsonStr, "\u2018", "'")
 	jsonStr = strings.ReplaceAll(jsonStr, "\u2019", "'")
 
-	jsonStr = strings.ReplaceAll(jsonStr, "［", "[")
-	jsonStr = strings.ReplaceAll(jsonStr, "］", "]")
-	jsonStr = strings.ReplaceAll(jsonStr, "｛", "{")
-	jsonStr = strings.ReplaceAll(jsonStr, "｝", "}")
-	jsonStr = strings.ReplaceAll(jsonStr, "：", ":")
-	jsonStr = strings.ReplaceAll(jsonStr, "，", ",")
+	jsonStr = strings.ReplaceAll(jsonStr, "�?, "[")
+	jsonStr = strings.ReplaceAll(jsonStr, "�?, "]")
+	jsonStr = strings.ReplaceAll(jsonStr, "�?, "{")
+	jsonStr = strings.ReplaceAll(jsonStr, "�?, "}")
+	jsonStr = strings.ReplaceAll(jsonStr, "�?, ":")
+	jsonStr = strings.ReplaceAll(jsonStr, "�?, ",")
 
-	jsonStr = strings.ReplaceAll(jsonStr, "【", "[")
-	jsonStr = strings.ReplaceAll(jsonStr, "】", "]")
-	jsonStr = strings.ReplaceAll(jsonStr, "〔", "[")
-	jsonStr = strings.ReplaceAll(jsonStr, "〕", "]")
-	jsonStr = strings.ReplaceAll(jsonStr, "、", ",")
+	jsonStr = strings.ReplaceAll(jsonStr, "�?, "[")
+	jsonStr = strings.ReplaceAll(jsonStr, "�?, "]")
+	jsonStr = strings.ReplaceAll(jsonStr, "�?, "[")
+	jsonStr = strings.ReplaceAll(jsonStr, "�?, "]")
+	jsonStr = strings.ReplaceAll(jsonStr, "�?, ",")
 
 	jsonStr = strings.ReplaceAll(jsonStr, "　", " ")
 
@@ -1858,6 +1861,14 @@ func validateDecisions(decisions []Decision, accountEquity float64, btcEthLevera
 }
 
 func validateDecision(d *Decision, accountEquity float64, btcEthLeverage, altcoinLeverage int, btcEthPosRatio, altcoinPosRatio float64) error {
+	orderType := strings.ToLower(strings.TrimSpace(d.OrderType))
+	if orderType == "" {
+		orderType = "limit"
+	}
+	if orderType != "limit" && orderType != "market" {
+		return fmt.Errorf("invalid order_type: %s", d.OrderType)
+	}
+	d.OrderType = orderType
 	validActions := map[string]bool{
 		"open_long":   true,
 		"open_short":  true,
@@ -1898,11 +1909,11 @@ func validateDecision(d *Decision, accountEquity float64, btcEthLeverage, altcoi
 
 		if d.Symbol == "BTCUSDT" || d.Symbol == "ETHUSDT" {
 			if d.PositionSizeUSD < minPositionSizeBTCETH {
-				return fmt.Errorf("%s opening amount too small (%.2f USDT), must be ≥%.2f USDT", d.Symbol, d.PositionSizeUSD, minPositionSizeBTCETH)
+				return fmt.Errorf("%s opening amount too small (%.2f USDT), must be �?.2f USDT", d.Symbol, d.PositionSizeUSD, minPositionSizeBTCETH)
 			}
 		} else {
 			if d.PositionSizeUSD < minPositionSizeGeneral {
-				return fmt.Errorf("opening amount too small (%.2f USDT), must be ≥%.2f USDT", d.PositionSizeUSD, minPositionSizeGeneral)
+				return fmt.Errorf("opening amount too small (%.2f USDT), must be �?.2f USDT", d.PositionSizeUSD, minPositionSizeGeneral)
 			}
 		}
 
@@ -1951,7 +1962,7 @@ func validateDecision(d *Decision, accountEquity float64, btcEthLeverage, altcoi
 		}
 
 		if riskRewardRatio < 3.0 {
-			return fmt.Errorf("risk/reward ratio too low (%.2f:1), must be ≥3.0:1 [risk: %.2f%% reward: %.2f%%] [stop loss: %.2f take profit: %.2f]",
+			return fmt.Errorf("risk/reward ratio too low (%.2f:1), must be �?.0:1 [risk: %.2f%% reward: %.2f%%] [stop loss: %.2f take profit: %.2f]",
 				riskRewardRatio, riskPercent, rewardPercent, d.StopLoss, d.TakeProfit)
 		}
 	}
